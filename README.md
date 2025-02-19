@@ -121,9 +121,9 @@ These are the steps a user would take to merge and bridge tokens (from ARB.TGT t
 
 - **Previous audits:**  N/A
 - **Documentation:** https://github.com/THORWallet/TGT-TITN-merge-contracts/blob/main/README.md
-- **Website:** 🐺 CA: https://www.thorwallet.org/
+- **Website:** https://www.thorwallet.org/
 - **X/Twitter:** https://x.com/thorwallet
-- **Discord:** 🐺 CA: https://discord.com/invite/TArAZHDjCr
+- **Discord:** https://discord.com/invite/TArAZHDjCr
 
 ---
 
