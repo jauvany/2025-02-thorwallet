@@ -165,7 +165,7 @@ These are the steps a user would take to merge and bridge tokens (from ARB.TGT t
 | Question                                | Answer                       |
 | --------------------------------------- | ---------------------------- |
 | ERC20 used by the protocol              |       [TGT on ARB](https://arbiscan.io/token/0x429fed88f10285e61b12bdf00848315fbdfcc341)             |
-| Test coverage                           | 86.89% of statements     |
+| Test coverage                           | 85.19% of statements     |
 | ERC721 used  by the protocol            |            None              |
 | ERC777 used by the protocol             |           None                |
 | ERC1155 used by the protocol            |              None            |
