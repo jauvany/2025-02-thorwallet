@@ -1,3 +1,4 @@
+import "solidity-coverage";
 // Get the environment configuration from .env file
 //
 // To make use of automatic environment setup:
