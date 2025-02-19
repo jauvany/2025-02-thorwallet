@@ -1,11 +1,11 @@
 # THORWallet audit details
-- Total Prize Pool: $18,000 in USDC
-  - HM awards: up to $10,150 USDC 
-  - QA awards: $350 in USDC
-  - Judge awards: $2,500 in USDC
-  - Validator awards: $1,500 USDC 
-  - Scout awards: $500 in USDC
-  - Mitigation Review: $3,000 USDC
+- Total Prize Pool: &#36;18,000 in USDC
+  - HM awards: up to &#36;10,150 USDC 
+  - QA awards: &#36;350 in USDC
+  - Judge awards: &#36;2,500 in USDC
+  - Validator awards: &#36;1,500 USDC 
+  - Scout awards: &#36;500 in USDC
+  - Mitigation Review: &#36;3,000 USDC
 - [Read our guidelines for more details](https://docs.code4rena.com/roles/wardens)
 - Starts February 20, 2025 20:00 UTC 
 - Ends February 26, 2025 20:00 UTC 
