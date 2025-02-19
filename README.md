@@ -1,7 +1,6 @@
 # THORWallet audit details
 - Total Prize Pool: $18,000 in USDC
   - HM awards: up to $10,150 USDC 
-    - If no valid Highs or Mediums are found, the HM pool is $0 
   - QA awards: $350 in USDC
   - Judge awards: $2,500 in USDC
   - Validator awards: $1,500 USDC 
