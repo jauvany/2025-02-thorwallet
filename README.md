@@ -1,28 +1,3 @@
-# ✨ So you want to run an audit
-
-This `README.md` contains a set of checklists for our audit collaboration. This is your audit repo, which is used for scoping your audit and for providing information to wardens
-
-Some of the checklists in this doc are for our scouts and some of them are for **you as the audit sponsor (⭐️)**.
-
----
-
-# Repo setup
-
-## ⭐️ Sponsor: Add code to this repo
-
-- [ ] Create a PR to this repo with the below changes:
-- [ ] Confirm that this repo is a self-contained repository with working commands that will build (at least) all in-scope contracts, and commands that will run tests producing gas reports for the relevant contracts.
-- [ ] Please have final versions of contracts and documentation added/updated in this repo **no less than 48 business hours prior to audit start time.**
-- [ ] Be prepared for a 🚨code freeze🚨 for the duration of the audit — important because it establishes a level playing field. We want to ensure everyone's looking at the same code, no matter when they look during the audit. (Note: this includes your own repo, since a PR can leak alpha to our wardens!)
-
-## ⭐️ Sponsor: Repo checklist
-
-- [ ] Modify the [Overview](#overview) section of this `README.md` file. Describe how your code is supposed to work with links to any relevant documentation and any other criteria/details that the auditors should keep in mind when reviewing. (Here are two well-constructed examples: [Ajna Protocol](https://github.com/code-423n4/2023-05-ajna) and [Maia DAO Ecosystem](https://github.com/code-423n4/2023-05-maia))
-- [ ] Optional: pre-record a high-level overview of your protocol (not just specific smart contract functions). This saves wardens a lot of time wading through documentation.
-- [ ] Review and confirm the details created by the Scout (technical reviewer) who was assigned to your contest. *Note: any files not listed as "in scope" will be considered out of scope for the purposes of judging, even if the file will be part of the deployed contracts.*  
-
----
-
 # THORWallet audit details
 - Total Prize Pool: $18,000 in USDC
   - HM awards: up to $10,150 USDC 
@@ -56,187 +31,102 @@ When getting a quote to merge TGT to TITN, the quote might lose precision and le
 
 The TITN token will be deployed on Arbitrum and Base, on Arbitrum. In the contract, the Arbitrum chain ID is hardcoded. This is ok for our use case.
 
-✅ SCOUTS: Please format the response above 👆 so its not a wall of text and its readable.
 
 # Overview
 
-[ ⭐️ SPONSORS: add info here ]
+The TITN ecosystem enables users to exchange their `ARB.TGT` for `ARB.TITN`, and subsequently bridge their `ARB.TITN` to `BASE.TITN`.
+
+**Key Features**:
+
+1. Token Transfers on BASE:
+
+- Non-bridged TITN Tokens: Holders can transfer their TITN tokens freely to any address as long as the tokens have not been bridged from ARBITRUM.
+- Bridged TITN Tokens: Transfers are restricted to a predefined address (`transferAllowedContract`), set by the admin. Initially, this address will be the staking contract to prevent trading until the `isBridgedTokensTransferLocked` flag is disabled by the admin.
+
+2. Token Transfers on ARBITRUM:
+
+- TITN holders are restricted to transferring their tokens only to the LayerZero endpoint address for bridging to BASE.
+- Admin/owner retains the ability to transfer tokens to any address.
+
+**Deployment Details:**
+
+- BASE Network:
+
+  - 1 Billion TITN tokens will be minted upon deployment and allocated to the owner.
+
+- ARBITRUM Network:
+  - No TITN tokens are minted initially.
+  - The owner is responsible for bridging 173.7 Million BASE.TITN to ARBITRUM and depositing them into the MergeTGT contract.
+
+**Transfer Restrictions**
+
+The contracts include a transfer restriction mechanism controlled by the isBridgedTokensTransferLocked flag. This ensures controlled token movement across networks until the admin deems it appropriate to enable unrestricted transfers.
+
+## Deploy contracts
+
+- `npx hardhat lz:deploy` > select both base and arbitrum > then type `Titn`
+- `npx hardhat lz:oapp:wire --oapp-config layerzero.config.ts`
+- `npx hardhat lz:deploy` > select only arbitrum > then type `MergeTgt`
+
+## Post Deployment steps
+
+### Setup on BASE
+
+1. Bridge 173700000 TITN to Arbitrum: `npx hardhat run scripts/sendToArb.ts --network base`
+
+### Setup on ARBITRUM
+
+1. Approve, deposit, enable merge...: `npx hardhat run scripts/arbitrumSetup.ts --network arbitrumOne`
+
+## User steps
+
+These are the steps a user would take to merge and bridge tokens (from ARB.TGT to ARB.TITN and then to BASE.TITN)
+
+### Merge steps
+
+1. on MergeTGT call the read function quoteTitn() to see how much TITN one can get
+2. `await tgt.approve(MERGE_TGT_ADDRESS, amountToDeposit)`
+3. `await tgt.transferAndCall(MERGE_TGT_ADDRESS, amountToDeposit, 0x)`
+4. `await mergeTgt.claimTitn(claimableAmount)`
+
+### Bridge to Base
+
+1. run `BRIDGE_AMOUNT=10 TO_ADDRESS=0x5166ef11e5dF6D4Ca213778fFf4756937e469663 npx hardhat run scripts/quote.ts --network arbitrumOne`
+2. with those params call the `send()` function in the ARB.TITN contract
+
+## LayerZero Docs
+
+- https://github.com/LayerZero-Labs/devtools/tree/main/examples/oft
+- https://docs.layerzero.network/
+
+
+
+## Deployed contracts
+
+### Test
+
+- BASE.TITN: `0xf72EC6551A98fE12B53f7c767AABF1aD57bB6DA1` [explorer](https://basescan.org/token/0xf72EC6551A98fE12B53f7c767AABF1aD57bB6DA1#code)
+- ARB.TITN: `0x2923b8ea6530FB0c9516f50Cd334e18d122ADAd3` [explorer](https://arbiscan.io/token/0x2923b8ea6530FB0c9516f50Cd334e18d122ADAd3#code)
+- ARB.MergeTGT: `0x22EAafe4004225c670C8A8007887DC0a9433bd86` [explorer](https://arbiscan.io/address/0x22EAafe4004225c670C8A8007887DC0a9433bd86#code)
+- ARB.TGT: `0x429fed88f10285e61b12bdf00848315fbdfcc341` [explorer](https://arbiscan.io/address/0x429fed88f10285e61b12bdf00848315fbdfcc341#code) 
+
+### Production
+
+- BASE.TITN: 
+- ARB.TITN:
+- ARB.MergeTGT:
+- ARB.TGT: `0x429fed88f10285e61b12bdf00848315fbdfcc341` [explorer](https://arbiscan.io/address/0x429fed88f10285e61b12bdf00848315fbdfcc341#code) 
+
 
 ## Links
 
-- **Previous audits:**  
-  - ✅ SCOUTS: If there are multiple report links, please format them in a list.
+- **Previous audits:**  N/A
 - **Documentation:** https://github.com/THORWallet/TGT-TITN-merge-contracts/blob/main/README.md
 - **Website:** 🐺 CA: add a link to the sponsor's website
-- **X/Twitter: https://x.com/THORWaletDEX
+- **X/Twitter:** https://x.com/THORWaletDEX
 - **Discord:** 🐺 CA: add a link to the sponsor's Discord
 
 ---
-
-# Scope
-
-[ ✅ SCOUTS: add scoping and technical details here ]
-
-### Files in scope
-- ✅ This should be completed using the `metrics.md` file
-- ✅ Last row of the table should be Total: SLOC
-- ✅ SCOUTS: Have the sponsor review and and confirm in text the details in the section titled "Scoping Q amp; A"
-
-*For sponsors that don't use the scoping tool: list all files in scope in the table below (along with hyperlinks) -- and feel free to add notes to emphasize areas of focus.*
-
-| Contract | SLOC | Purpose | Libraries used |  
-| ----------- | ----------- | ----------- | ----------- |
-| [contracts/folder/sample.sol](https://github.com/code-423n4/repo-name/blob/contracts/folder/sample.sol) | 123 | This contract does XYZ | [`@openzeppelin/*`](https://openzeppelin.com/contracts/) |
-
-### Files out of scope
-✅ SCOUTS: List files/directories out of scope
-
-## Scoping Q &amp; A
-
-### General questions
-### Are there any ERC20's in scope?: Yes
-
-✅ SCOUTS: If the answer above 👆 is "Yes", please add the tokens below 👇 to the table. Otherwise, update the column with "None".
-
-Specific tokens (please specify)
-https://arbiscan.io/token/0x429fed88f10285e61b12bdf00848315fbdfcc341#code
-
-### Are there any ERC777's in scope?: No
-
-✅ SCOUTS: If the answer above 👆 is "Yes", please add the tokens below 👇 to the table. Otherwise, update the column with "None".
-
-
-
-### Are there any ERC721's in scope?: No
-
-✅ SCOUTS: If the answer above 👆 is "Yes", please add the tokens below 👇 to the table. Otherwise, update the column with "None".
-
-
-
-### Are there any ERC1155's in scope?: No
-
-✅ SCOUTS: If the answer above 👆 is "Yes", please add the tokens below 👇 to the table. Otherwise, update the column with "None".
-
-
-
-✅ SCOUTS: Once done populating the table below, please remove all the Q/A data above.
-
-| Question                                | Answer                       |
-| --------------------------------------- | ---------------------------- |
-| ERC20 used by the protocol              |       🖊️             |
-| Test coverage                           | ✅ SCOUTS: Please populate this after running the test coverage command                          |
-| ERC721 used  by the protocol            |            🖊️              |
-| ERC777 used by the protocol             |           🖊️                |
-| ERC1155 used by the protocol            |              🖊️            |
-| Chains the protocol will be deployed on | Arbitrum,Base |
-
-### ERC20 token behaviors in scope
-
-| Question                                                                                                                                                   | Answer |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| [Missing return values](https://github.com/d-xo/weird-erc20?tab=readme-ov-file#missing-return-values)                                                      |    |
-| [Fee on transfer](https://github.com/d-xo/weird-erc20?tab=readme-ov-file#fee-on-transfer)                                                                  |   |
-| [Balance changes outside of transfers](https://github.com/d-xo/weird-erc20?tab=readme-ov-file#balance-modifications-outside-of-transfers-rebasingairdrops) |    |
-| [Upgradeability](https://github.com/d-xo/weird-erc20?tab=readme-ov-file#upgradable-tokens)                                                                 |    |
-| [Flash minting](https://github.com/d-xo/weird-erc20?tab=readme-ov-file#flash-mintable-tokens)                                                              |    |
-| [Pausability](https://github.com/d-xo/weird-erc20?tab=readme-ov-file#pausable-tokens)                                                                      |    |
-| [Approval race protections](https://github.com/d-xo/weird-erc20?tab=readme-ov-file#approval-race-protections)                                              |    |
-| [Revert on approval to zero address](https://github.com/d-xo/weird-erc20?tab=readme-ov-file#revert-on-approval-to-zero-address)                            |    |
-| [Revert on zero value approvals](https://github.com/d-xo/weird-erc20?tab=readme-ov-file#revert-on-zero-value-approvals)                                    |    |
-| [Revert on zero value transfers](https://github.com/d-xo/weird-erc20?tab=readme-ov-file#revert-on-zero-value-transfers)                                    |    |
-| [Revert on transfer to the zero address](https://github.com/d-xo/weird-erc20?tab=readme-ov-file#revert-on-transfer-to-the-zero-address)                    |    |
-| [Revert on large approvals and/or transfers](https://github.com/d-xo/weird-erc20?tab=readme-ov-file#revert-on-large-approvals--transfers)                  |    |
-| [Doesn't revert on failure](https://github.com/d-xo/weird-erc20?tab=readme-ov-file#no-revert-on-failure)                                                   |    |
-| [Multiple token addresses](https://github.com/d-xo/weird-erc20?tab=readme-ov-file#revert-on-zero-value-transfers)                                          |    |
-| [Low decimals ( < 6)](https://github.com/d-xo/weird-erc20?tab=readme-ov-file#low-decimals)                                                                 |    |
-| [High decimals ( > 18)](https://github.com/d-xo/weird-erc20?tab=readme-ov-file#high-decimals)                                                              |    |
-| [Blocklists](https://github.com/d-xo/weird-erc20?tab=readme-ov-file#tokens-with-blocklists)                                                                |    |
-
-### External integrations (e.g., Uniswap) behavior in scope:
-
-
-| Question                                                  | Answer |
-| --------------------------------------------------------- | ------ |
-| Enabling/disabling fees (e.g. Blur disables/enables fees) | No   |
-| Pausability (e.g. Uniswap pool gets paused)               |  Yes   |
-| Upgradeability (e.g. Uniswap gets upgraded)               |   No  |
-
-
-### EIP compliance checklist
-N/A
-
-✅ SCOUTS: Please format the response above 👆 using the template below👇
-
-| Question                                | Answer                       |
-| --------------------------------------- | ---------------------------- |
-| src/Token.sol                           | ERC20, ERC721                |
-| src/NFT.sol                             | ERC721                       |
-
-
-# Additional context
-
-## Main invariants
-
-Unless enabled (or the user is the admin), users who merge their TGT to TITN should not be able to transfer them to any address other than the LayerZero endpoint or a specified contract address `transferAllowedContract`.
-
-✅ SCOUTS: Please format the response above 👆 so its not a wall of text and its readable.
-
-## Attack ideas (where to focus for bugs)
-Will everyone who decides to deposit TGT and leave them in the contract for 12 months be able to get their share of TITN plus any remaining TITN left proportional to their deposit?
-
-The TITN token on Arbitrum should not allow transfer of tokens to any address other than the LayerZero endpoint (there are exceptions for the owner and a flag that can be set by the owner to enable and disable this feature).
-
-✅ SCOUTS: Please format the response above 👆 so its not a wall of text and its readable.
-
-## All trusted roles in the protocol
-
-N/A
-
-✅ SCOUTS: Please format the response above 👆 using the template below👇
-
-| Role                                | Description                       |
-| --------------------------------------- | ---------------------------- |
-| Owner                          | Has superpowers                |
-| Administrator                             | Can change fees                       |
-
-## Describe any novel or unique curve logic or mathematical models implemented in the contracts:
-
-After 3 months of the merge contract going live, the quote to merge TGT to TINT will reduce linearly until it reaches 0 (9 months later). 
-
-✅ SCOUTS: Please format the response above 👆 so its not a wall of text and its readable.
-
-## Running tests
-
-pnpm install
-npx hardhat compile
-npx hardhat test
-
-✅ SCOUTS: Please format the response above 👆 using the template below👇
-
-```bash
-git clone https://github.com/code-423n4/2023-08-arbitrum
-git submodule update --init --recursive
-cd governance
-foundryup
-make install
-make build
-make sc-election-test
-```
-To run code coverage
-```bash
-make coverage
-```
-To run gas benchmarks
-```bash
-make gas
-```
-
-✅ SCOUTS: Add a screenshot of your terminal showing the gas report
-✅ SCOUTS: Add a screenshot of your terminal showing the test coverage
-
-
-
-
 
 
 # Scope
@@ -265,6 +155,89 @@ make gas
 | ./test/mocks/OFTComposerMock.sol |
 | ./test/mocks/OFTMock.sol |
 | Totals: 4 |
+
+
+## Scoping Q &amp; A
+
+### General questions
+
+
+| Question                                | Answer                       |
+| --------------------------------------- | ---------------------------- |
+| ERC20 used by the protocol              |       [TGT on ARB](https://arbiscan.io/token/0x429fed88f10285e61b12bdf00848315fbdfcc341)             |
+| Test coverage                           | 86.89% of statements     |
+| ERC721 used  by the protocol            |            None              |
+| ERC777 used by the protocol             |           None                |
+| ERC1155 used by the protocol            |              None            |
+| Chains the protocol will be deployed on | Arbitrum,Base |
+
+### External integrations (e.g., Uniswap) behavior in scope:
+
+
+| Question                                                  | Answer |
+| --------------------------------------------------------- | ------ |
+| Enabling/disabling fees (e.g. Blur disables/enables fees) | No   |
+| Pausability (e.g. Uniswap pool gets paused)               |  Yes   |
+| Upgradeability (e.g. Uniswap gets upgraded)               |   No  |
+
+
+### EIP compliance checklist
+N/A
+
+
+
+# Additional context
+
+## Main invariants
+
+Unless enabled (or the user is the admin), users who merge their TGT to TITN should not be able to transfer them to any address other than the LayerZero endpoint or a specified contract address `transferAllowedContract`.
+
+
+## Attack ideas (where to focus for bugs)
+* Will everyone who decides to deposit TGT and leave them in the contract for 12 months be able to get their share of TITN plus any remaining TITN left proportional to their deposit?
+* The TITN token on Arbitrum should not allow transfer of tokens to any address other than the LayerZero endpoint (there are exceptions for the owner and a flag that can be set by the owner to enable and disable this feature).
+
+
+## All trusted roles in the protocol
+
+N/A
+
+
+## Describe any novel or unique curve logic or mathematical models implemented in the contracts:
+
+After 3 months of the merge contract going live, the quote to merge TGT to TINT will reduce linearly until it reaches 0 (9 months later). 
+
+
+## Running tests
+
+
+
+
+```bash
+git clone https://github.com/code-423n4/2025-02-thorwallet
+cd 2025-02-thorwallet
+pnpm install
+npx hardhat compile
+npx hardhat test
+
+# To get test coverage
+npx hardhat coverage
+```
+
+#### Coverage table
+
+File                   |  % Stmts | % Branch |  % Funcs |  % Lines |Uncovered Lines |
+-----------------------|----------|----------|----------|----------|----------------|
+ contracts/            |    85.19 |       55 |    68.18 |     81.4 |                |
+  MergeTgt.sol         |    84.62 |    52.08 |    61.54 |    78.46 |... 118,179,183 |
+  Titn.sol             |    86.67 |    66.67 |    77.78 |    90.48 |          39,49 |
+ contracts/interfaces/ |      100 |      100 |      100 |      100 |                |
+  IERC677Receiver.sol  |      100 |      100 |      100 |      100 |                |
+  IMerge.sol           |      100 |      100 |      100 |      100 |                |
+ contracts/mocks/      |      100 |       50 |      100 |      100 |                |
+  Tgt.sol              |      100 |       50 |      100 |      100 |                |
+All files              |    86.89 |    54.84 |       72 |    82.98 |                |
+
 
 
 ## Miscellaneous
